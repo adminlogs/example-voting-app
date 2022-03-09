@@ -7,6 +7,9 @@ pipeline
 	}
 	stages{
 		stage("build"){
+			when{
+				changeset "**/worker/**"
+			}
 			steps
 			{
 				echo 'Compiling worker app'
@@ -16,19 +19,38 @@ pipeline
 			}
 		}
 		stage("test"){
+			when{
+				changeset "**/worker/**"
+			}
 			steps{
 				echo 'Running Unit Tets on worker app'
+				dir('worker'){
+				sh 'mvn clean test'
+				}
 			}
 		}
 		stage("package"){
+			when{
+				branch 'master'
+				changeset "**/worker/**"
+			}
 			steps{
 				echo 'Packaging worker app'
+				dir('worker'){
+				sh 'mvn package -DskipTests'
+				}
 			}
 		}
 	}
 	post{
 		always{
 			echo 'Building multibranch pipeline for worker is completed..'
+		}
+		success{
+			slackSend(channel: "#instavote-cd", message: "Build succedded - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+		}
+		failure{
+			slackSend(channel: "#instavote-cd", message: "Build failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
 		}
 	}
 }
