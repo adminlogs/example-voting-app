@@ -64,7 +64,7 @@ pipeline
 					docker.withRegistry('https://registry-1.docker.io/v2/', 'dockerlogin')
 					{
 						def workerImage = docker.build("adelelearning/worker:v${env.BUILD_ID}", "./worker")
-						workerImage.push("${env.BRANCH_NAME}")
+						workerImage.push("${env.BUILD_ID}")
 					}
 				}
                         }
