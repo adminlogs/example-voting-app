@@ -21,7 +21,7 @@ pipeline
 				} 
 			}
 		}
-		stage("result"){
+		stage("test"){
 			agent {
 				docker
 				{
@@ -33,7 +33,7 @@ pipeline
 				changeset "**/result/**"
 			}
 			steps{
-				echo 'Running Unit Tests on result app'
+				echo 'Running Unit Tests on result application'
 				dir('result'){
 				sh 'nmp test'
 				}
