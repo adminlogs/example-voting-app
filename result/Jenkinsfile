@@ -1,0 +1,73 @@
+pipeline
+{
+	agent none
+	stages{
+		stage("build"){
+			agent {
+				docker
+				{
+					image 'node:8.16.0-alpine  '
+					args '--user root'
+				}
+			}
+			when{
+				changeset "**/result/**"
+			}
+			steps
+			{
+				echo 'Compiling resulr app'
+				dir('result'){
+				sh 'npm install'
+				} 
+			}
+		}
+		stage("result"){
+			agent {
+				docker
+				{
+					image 'python:2.7.16-slim'
+					args '--user root'
+				}
+			}
+			when{
+				changeset "**/result/**"
+			}
+			steps{
+				echo 'Running Unit Tests on result app'
+				dir('result'){
+				sh 'nmp test'
+				}
+			}
+		}
+		stage("docker-package"){
+			agent any
+                        when{
+                        	branch 'master'
+                                changeset "**/result/**"
+                        }
+                        steps{
+                                echo 'Packaging result app with docker'
+				script
+				{
+					docker.withRegistry('https://registry-1.docker.io/v2/', 'dockerlogin')
+					{
+						def workerImage = docker.build("adelelearning/result:v${env.BUILD_ID}", "./result")
+						workerImage.push()
+						workerImage.push("${env.BRANCH_NAME}")
+					}
+				}
+                        }
+                }
+	}
+	post{
+		always{
+			echo 'Building multibranch pipeline for result is completed..'
+		}
+		success{
+			slackSend(channel: "#instavote-cd", message: "Build succedded - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+		}
+		failure{
+			slackSend(channel: "#instavote-cd", message: "Build failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+		}
+	}
+}
