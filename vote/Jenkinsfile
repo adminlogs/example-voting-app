@@ -1,3 +1,4 @@
+
 pipeline
 {
 	agent none
@@ -33,7 +34,7 @@ pipeline
 				changeset "**/vote/**"
 			}
 			steps{
-				echo 'Running Unit Tests on vote app'
+				echo 'Running Unit Tests on vote application'
 				dir('vote'){
 				sh 'nosetests -v'
 				}
