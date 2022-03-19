@@ -6,36 +6,36 @@ pipeline
 			agent {
 				docker
 				{
-					image 'python:2.7.16-slim'
+					image 'node:8.16.0-alpine'
 					args '--user root'
 				}
 			}
 			when{
-				changeset "**/vote/**"
+				changeset "**/result/**"
 			}
 			steps
 			{
-				echo 'Compiling vote app'
-				dir('vote'){
-				sh 'pip install -r requirements.txt'
-				}
+				echo 'Compiling result app'
+				dir('result'){
+				sh 'npm install'
+				} 
 			}
 		}
-		stage("test"){
+		stage("result"){
 			agent {
 				docker
 				{
-					image 'python:2.7.16-slim'
+					image 'node:8.16.0-alpine'
 					args '--user root'
 				}
 			}
 			when{
-				changeset "**/vote/**"
+				changeset "**/result/**"
 			}
 			steps{
-				echo 'Running Unit Tests on vote app'
-				dir('vote'){
-				sh 'nosetests -v'
+				echo 'Running Unit Tests on result app'
+				dir('result'){
+				sh 'nmp test'
 				}
 			}
 		}
@@ -43,15 +43,15 @@ pipeline
 			agent any
                         when{
                         	branch 'master'
-                                changeset "**/vote/**"
+                                changeset "**/result/**"
                         }
                         steps{
-                                echo 'Packaging vote app with docker'
+                                echo 'Packaging result app with docker'
 				script
 				{
 					docker.withRegistry('https://registry-1.docker.io/v2/', 'dockerlogin')
 					{
-						def workerImage = docker.build("adelelearning/vote:v${env.BUILD_ID}", "./vote")
+						def workerImage = docker.build("adelelearning/result:v${env.BUILD_ID}", "./result")
 						workerImage.push()
 						workerImage.push("${env.BRANCH_NAME}")
 					}
@@ -61,7 +61,7 @@ pipeline
 	}
 	post{
 		always{
-			echo 'Building multibranch pipeline for vote is completed..'
+			echo 'Building multibranch pipeline for result is completed..'
 		}
 		success{
 			slackSend(channel: "#instavote-cd", message: "Build succedded - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
