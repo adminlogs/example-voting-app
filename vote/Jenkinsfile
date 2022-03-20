@@ -1,4 +1,3 @@
-
 pipeline
 {
 	agent none
@@ -36,6 +35,7 @@ pipeline
 			steps{
 				echo 'Running Unit Tests on vote application'
 				dir('vote'){
+				sh 'pip install -r requirements.txt'
 				sh 'nosetests -v'
 				}
 			}
