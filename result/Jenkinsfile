@@ -35,7 +35,7 @@ pipeline
 			steps{
 				echo 'Running Unit Tests on result application'
 				dir('result'){
-				sh 'nmp test'
+				sh 'npm test'
 				}
 			}
 		}
